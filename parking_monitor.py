@@ -61,7 +61,7 @@ def check_and_reserve():
     now = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
     
     check_url = "https://api.amanopark.co.kr/api/web/setting/booking/check"
-    params = {"date": "2026-05-29", "type": "BASIC"}
+    params = {"date": "2026-05-21", "type": "BASIC"}
     
     try:
         response = requests.get(check_url, params=params)
