@@ -3,12 +3,16 @@ name: Parking Bot Alert
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # 30분마다 실행
-  workflow_dispatch: # 수동 실행 버튼
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 
 jobs:
   check_parking:
     runs-on: ubuntu-latest
+    # 서버 환경 변수에 타임존 설정 추가
+    env:
+      TZ: Asia/Seoul
+      
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
