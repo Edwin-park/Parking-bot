@@ -30,8 +30,8 @@ def reserve_now(now_str):
         "carColor": "BLACK",
         "carBrand": "LE",
         "type": "BASIC",
-        "arrivedAt": "2026-05-25 16:30", 
-        "departingAt": "2026-05-21 07:00",
+        "arrivedAt": "2026-05-21 16:30", 
+        "departingAt": "2026-05-25 07:00",
         "customerRequest": None,
         "root": "WEB",
         "isUsingCarWash": False,
@@ -61,7 +61,7 @@ def check_and_reserve():
     now = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
     
     check_url = "https://api.amanopark.co.kr/api/web/setting/booking/check"
-    params = {"date": "2026-05-21", "type": "BASIC"}
+    params = {"date": "2026-05-25", "type": "BASIC"}
     
     try:
         response = requests.get(check_url, params=params)
