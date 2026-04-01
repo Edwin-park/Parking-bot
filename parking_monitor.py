@@ -1,7 +1,7 @@
 # Font: Noto Sans
 import requests
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 # 깃허브 시크릿 설정
 BOT_TOKEN = os.environ.get('PARKING_BOT_TOKEN')
@@ -20,9 +20,10 @@ def send_alert(message):
         print(f"텔레그램 전송 에러: {e}")
 
 def check_parking():
-    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    # 한국 시간(KST) 설정 (UTC + 9시간)
+    kst = timezone(timedelta(hours=9))
+    now = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
     
-    # 성백님이 찾으신 직통 API 주소
     api_url = "https://api.amanopark.co.kr/api/web/setting/booking/check"
     params = {
         "date": "2026-05-21",
@@ -37,25 +38,20 @@ def check_parking():
 
     try:
         response = requests.get(api_url, params=params, headers=headers)
-        data = response.json() # 결과 예: {"data": false}
-        
-        # 서버 응답에서 'data' 값이 true인지 확인
+        data = response.json()
         is_available = data.get('data', False)
 
         if is_available:
-            msg = f"🚨 **[주차대행 자리 발생!]**\n성백님, 5월 21일 예약이 가능합니다!\n지금 즉시 예약하세요: https://valet.amanopark.co.kr/booking"
+            msg = f"🚨 **[주차대행 자리 발생!]**\n조회 시간: {now}\n성백님, 5월 21일 예약이 가능합니다!\n지금 즉시 예약하세요: https://valet.amanopark.co.kr/booking"
             send_alert(msg)
-            print(f"{now} - 자리가 났습니다! 알림 전송 완료.")
         else:
-            # 자리가 없을 때도 보고 (성백님 요청사항)
-            msg = f"ℹ️ [파킹봇 상태 보고]\n조회 시간: {now}\n5월 21일은 아직 **만차**입니다. 계속 감시할게요!"
+            msg = f"ℹ️ [파킹봇 상태 보고]\n조회 시간: {now}\n5월 21일은 아직 **만차**입니다."
             send_alert(msg)
             print(f"{now} - 아직 만차입니다.")
 
     except Exception as e:
-        error_msg = f"❌ [파킹봇 오류]\n데이터를 가져오지 못했습니다: {str(e)}"
+        error_msg = f"❌ [파킹봇 오류]\n조회 중 에러: {str(e)}"
         send_alert(error_msg)
-        print(error_msg)
 
 if __name__ == "__main__":
     check_parking()
