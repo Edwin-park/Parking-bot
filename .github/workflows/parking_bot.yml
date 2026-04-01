@@ -3,13 +3,12 @@ name: Parking Bot Alert
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
   check_parking:
     runs-on: ubuntu-latest
-    # 서버 환경 변수에 타임존 설정 추가
     env:
       TZ: Asia/Seoul
       
@@ -29,4 +28,8 @@ jobs:
         env:
           PARKING_BOT_TOKEN: ${{ secrets.PARKING_BOT_TOKEN }}
           PARKING_CHAT_ID: ${{ secrets.PARKING_CHAT_ID }}
+          # 새로 추가된 개인정보 시크릿들
+          PARKING_NAME: ${{ secrets.PARKING_NAME }}
+          PARKING_PHONE: ${{ secrets.PARKING_PHONE }}
+          PARKING_CAR_NUMBER: ${{ secrets.PARKING_CAR_NUMBER }}
         run: python parking_monitor.py
