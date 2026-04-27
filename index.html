@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parking Bot</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #667085;
+      --line: #d8dee6;
+      --primary: #1565c0;
+      --primary-press: #0d47a1;
+      --danger: #b42318;
+      --success: #027a48;
+      --warn: #b54708;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 32px auto;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    fieldset {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 240px));
+      gap: 14px;
+      align-items: end;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .actions,
+    .status-panel {
+      grid-column: 1 / -1;
+    }
+
+    legend {
+      grid-column: 1 / -1;
+      margin-bottom: 2px;
+      color: #344054;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 650;
+      min-width: 0;
+      width: min(100%, 240px);
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+      padding: 8px 10px;
+    }
+
+    input[readonly] {
+      background: #f8fafc;
+      color: #475467;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.16);
+      outline: 0;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding-top: 4px;
+    }
+
+    .action-field {
+      display: inline-grid;
+      grid-template-columns: auto 88px;
+      gap: 8px;
+      align-items: center;
+      width: auto;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .toggle-field {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      width: auto;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .toggle-field input {
+      width: 16px;
+      min-height: 16px;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      padding: 8px 14px;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:active {
+      background: var(--primary-press);
+    }
+
+    button.secondary {
+      background: #fff;
+      border-color: #cbd5e1;
+      color: #344054;
+    }
+
+    button.danger {
+      background: #fff;
+      border-color: #fda29b;
+      color: var(--danger);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+
+    .debug-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 2px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .debug-panel[hidden] {
+      display: none;
+    }
+
+    .success-panel {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+      border: 1px solid #75e0a7;
+      border-radius: 8px;
+      background: #ecfdf3;
+      color: #05603a;
+    }
+
+    .success-panel[hidden] {
+      display: none;
+    }
+
+    .success-panel strong {
+      font-size: 15px;
+    }
+
+    .success-panel span {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .status-line {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      color: #344054;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      background: #eef2f6;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 750;
+      padding: 2px 10px;
+    }
+
+    .badge.running {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .badge.success {
+      background: #dcfae6;
+      color: var(--success);
+    }
+
+    .badge.warn {
+      background: #fef0c7;
+      color: var(--warn);
+    }
+
+    .badge.error {
+      background: #fee4e2;
+      color: var(--danger);
+    }
+
+    pre {
+      min-height: 150px;
+      max-height: 340px;
+      margin: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      border-radius: 6px;
+      background: #101828;
+      color: #e4e7ec;
+      font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 14px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .split-row {
+      display: grid;
+      grid-template-columns: minmax(144px, 1fr) minmax(104px, 0.72fr);
+      gap: 12px;
+    }
+
+    label:has(.split-row) {
+      width: min(100%, 384px);
+    }
+
+    .date-fields {
+      grid-template-columns: repeat(auto-fit, minmax(360px, 384px));
+      column-gap: 28px;
+      row-gap: 14px;
+    }
+
+    .date-fields label {
+      width: 100%;
+    }
+
+    .no-legend legend {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100% - 20px, 680px);
+        margin: 18px auto;
+      }
+
+      form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      fieldset {
+        grid-template-columns: 1fr;
+      }
+
+      .date-fields {
+        grid-template-columns: 1fr;
+      }
+
+      label,
+      label:has(.split-row) {
+        width: 100%;
+      }
+
+      .action-field {
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      .toggle-field {
+        width: 100%;
+      }
+
+      .split-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Parking Bot</h1>
+      <p>이 페이지가 열려 있는 동안 브라우저가 직접 예약 확인 API를 호출합니다.</p>
+    </header>
+
+    <form id="settings">
+      <fieldset class="no-legend">
+        <legend>확인 조건</legend>
+        <label>
+          주차 타입
+          <input id="typeLabel" name="typeLabel" value="일반" readonly>
+          <input id="type" name="type" type="hidden" value="BASIC">
+        </label>
+        <label>
+          항공편
+          <select id="departingAir" name="departingAir" required>
+            <option value="KE">대한항공</option>
+            <option value="LJ">진에어</option>
+            <option value="RS">에어서울</option>
+            <option value="BX">에어부산</option>
+            <option value="GA">가루다인도네시아</option>
+            <option value="DL">델타항공</option>
+            <option value="MF">샤먼항공</option>
+            <option value="AF">에어프랑스</option>
+            <option value="KL">KLM네덜란드항공</option>
+            <option value="CI">중화항공</option>
+            <option value="SK">스칸디나비아항공</option>
+            <option value="OZ">아시아나항공</option>
+          </select>
+        </label>
+        <label>
+          이름
+          <input id="name" name="name" autocomplete="name" required>
+        </label>
+        <label>
+          전화번호
+          <input id="phone" name="phone" autocomplete="tel" required>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <label>
+          차량번호
+          <input id="carNumber" name="carNumber" required>
+        </label>
+        <label>
+          차량 모델
+          <input id="carModel" name="carModel" value="NX450h+">
+        </label>
+        <label>
+          차량 색상
+          <select id="carColor" name="carColor" required>
+            <option value="BLACK">검정</option>
+            <option value="WHITE">흰색</option>
+            <option value="SILVER">은색</option>
+            <option value="GRAY">회색</option>
+            <option value="BROWN">갈색</option>
+            <option value="GREEN">녹색</option>
+            <option value="RED">빨강</option>
+            <option value="BLUE">파랑</option>
+            <option value="YELLOW">노랑</option>
+            <option value="PURPLE">보라</option>
+            <option value="WINE">자주</option>
+            <option value="ETC">기타</option>
+          </select>
+        </label>
+        <label>
+          차량 브랜드
+          <select id="carBrand" name="carBrand" required>
+            <option value="HY">현대</option>
+            <option value="KI">기아</option>
+            <option value="CH">쉐보레</option>
+            <option value="RE">르노삼성</option>
+            <option value="KG">쌍용</option>
+            <option value="GE">제네시스</option>
+            <option value="VE">벤츠</option>
+            <option value="BMW">BMW</option>
+            <option value="AU">아우디</option>
+            <option value="VW">폭스바겐</option>
+            <option value="TO">도요타</option>
+            <option value="LE" selected>렉서스</option>
+            <option value="HO">혼다</option>
+            <option value="MI">미니</option>
+            <option value="FO">포드</option>
+            <option value="FU">푸조</option>
+            <option value="VO">볼보</option>
+            <option value="PO">포르쉐</option>
+            <option value="CA">캐딜락</option>
+            <option value="ZE">지프</option>
+            <option value="LI">링컨</option>
+            <option value="CY">크라이슬러</option>
+            <option value="NI">닛산</option>
+            <option value="IN">인피니티</option>
+            <option value="JA">재규어</option>
+            <option value="LA">랜드로버</option>
+            <option value="CI">시트로엥</option>
+            <option value="FE">페라리</option>
+            <option value="FI">피아트</option>
+            <option value="RO">롤스로이스</option>
+            <option value="MA">마세라티</option>
+            <option value="TE">테슬라</option>
+            <option value="LAM">람보르기니</option>
+            <option value="VEN">벤틀리</option>
+            <option value="ETC">기타</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset class="no-legend date-fields">
+        <legend>예약 시간</legend>
+        <label>
+          출발 일시(항공편 출발시간)
+          <span class="split-row">
+            <input id="departingDate" name="departingDate" type="date" value="2026-05-21" required>
+            <input id="departingTime" name="departingTime" type="time" value="07:00" required>
+          </span>
+        </label>
+        <label>
+          도착 일시(항공편 도착시간)
+          <span class="split-row">
+            <input id="arrivedDate" name="arrivedDate" type="date" value="2026-05-25" required>
+            <input id="arrivedTime" name="arrivedTime" type="time" value="16:30" required>
+          </span>
+        </label>
+      </fieldset>
+
+      <div class="actions">
+        <button class="primary" id="startButton" type="button">시작</button>
+        <label class="action-field">
+          반복 간격
+          <select id="intervalSeconds" name="intervalSeconds" required>
+            <option value="60">1분</option>
+            <option value="300">5분</option>
+            <option value="600">10분</option>
+          </select>
+        </label>
+        <button class="secondary" id="runButton" type="button">지금 한 번 실행</button>
+        <button class="secondary" id="stopButton" type="button" disabled>중지</button>
+        <button class="danger" id="clearButton" type="button">저장값 지우기</button>
+        <label class="toggle-field">
+          <input id="debugMode" name="debugMode" type="checkbox">
+          디버그
+        </label>
+      </div>
+
+      <div class="status-line" aria-live="polite">
+        <span id="stateBadge" class="badge">대기</span>
+        <span id="statusText">아직 실행하지 않았습니다.</span>
+      </div>
+
+      <section class="success-panel" id="successPanel" hidden aria-live="polite">
+        <strong>예약 성공</strong>
+        <span id="successMessage"></span>
+      </section>
+
+      <section class="debug-panel" id="debugPanel" hidden>
+        <p class="hint">브라우저가 CORS 오류를 표시하면 대상 API가 정적 웹페이지의 직접 호출을 허용하지 않는 상태입니다.</p>
+        <pre id="logOutput">로그가 여기에 표시됩니다.</pre>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'parkingBotSettings';
+    const checkUrl = 'https://api.amanopark.co.kr/api/web/setting/booking/check';
+    const reservationUrl = 'https://api.amanopark.co.kr/api/web/booking/reservation';
+    const form = document.getElementById('settings');
+    const stateBadge = document.getElementById('stateBadge');
+    const statusText = document.getElementById('statusText');
+    const logOutput = document.getElementById('logOutput');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const runButton = document.getElementById('runButton');
+    const clearButton = document.getElementById('clearButton');
+    const debugMode = document.getElementById('debugMode');
+    const debugPanel = document.getElementById('debugPanel');
+    const successPanel = document.getElementById('successPanel');
+    const successMessage = document.getElementById('successMessage');
+    const MAX_LOG_ENTRIES = 80;
+    const requestTimeoutMs = 25000;
+    let timerId = null;
+    let inFlight = false;
+    let activeController = null;
+    let logEntries = [];
+
+    function getValue(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function combineDateTime(date, time) {
+      return `${date} ${time}`;
+    }
+
+    function splitDateTime(value) {
+      if (!value) return { date: '', time: '' };
+      const normalized = value.replace('T', ' ');
+      const [date, time = ''] = normalized.split(' ');
+      return { date, time: time.slice(0, 5) };
+    }
+
+    function toDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getBookingDateRange() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const maxDate = new Date(today);
+      maxDate.setDate(maxDate.getDate() + 60);
+
+      return {
+        min: toDateInputValue(today),
+        max: toDateInputValue(maxDate)
+      };
+    }
+
+    function isDateInRange(value, range) {
+      return value >= range.min && value <= range.max;
+    }
+
+    function clampDate(value, range) {
+      if (!value || value < range.min) return range.min;
+      if (value > range.max) return range.max;
+      return value;
+    }
+
+    function applyDateLimits() {
+      const range = getBookingDateRange();
+      const departingDate = document.getElementById('departingDate');
+      const arrivedDate = document.getElementById('arrivedDate');
+
+      departingDate.min = range.min;
+      departingDate.max = range.max;
+      departingDate.value = clampDate(departingDate.value, range);
+
+      arrivedDate.removeAttribute('min');
+      arrivedDate.removeAttribute('max');
+    }
+
+    function readSettings() {
+      return {
+        date: getValue('departingDate'),
+        type: 'BASIC',
+        intervalSeconds: Number(getValue('intervalSeconds')),
+        name: getValue('name'),
+        phone: getValue('phone'),
+        carNumber: getValue('carNumber'),
+        carModel: getValue('carModel'),
+        carColor: getValue('carColor'),
+        carBrand: getValue('carBrand'),
+        arrivedDate: getValue('arrivedDate'),
+        arrivedTime: getValue('arrivedTime'),
+        departingDate: getValue('departingDate'),
+        departingTime: getValue('departingTime'),
+        departingAir: getValue('departingAir'),
+        debugMode: debugMode.checked
+      };
+    }
+
+    function normalizeIntervalSeconds(value) {
+      const seconds = Number(value);
+      if (seconds <= 60) return 60;
+      if (seconds <= 300) return 300;
+      return 600;
+    }
+
+    function saveSettings() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(readSettings()));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+
+      try {
+        const settings = JSON.parse(saved);
+        if (settings.arrivedAt && (!settings.arrivedDate || !settings.arrivedTime)) {
+          const arrived = splitDateTime(settings.arrivedAt);
+          settings.arrivedDate = arrived.date;
+          settings.arrivedTime = arrived.time;
+        }
+        if (settings.departingAt && (!settings.departingDate || !settings.departingTime)) {
+          const departing = splitDateTime(settings.departingAt);
+          settings.departingDate = departing.date;
+          settings.departingTime = departing.time;
+        }
+        if (settings.intervalSeconds !== undefined) {
+          settings.intervalSeconds = normalizeIntervalSeconds(settings.intervalSeconds);
+        }
+        const range = getBookingDateRange();
+        settings.departingDate = clampDate(settings.departingDate, range);
+        Object.entries(settings).forEach(([key, value]) => {
+          const input = document.getElementById(key);
+          if (!input || value === undefined || value === null) return;
+          if (input.type === 'checkbox') {
+            input.checked = Boolean(value);
+          } else {
+            input.value = value;
+          }
+        });
+        applyDateLimits();
+        updateDebugVisibility();
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function setState(kind, text) {
+      stateBadge.className = `badge ${kind || ''}`.trim();
+      stateBadge.textContent = {
+        running: '실행 중',
+        success: '예약 가능',
+        warn: '대기',
+        error: '오류'
+      }[kind] || '대기';
+      statusText.textContent = text;
+    }
+
+    function hideSuccessMessage() {
+      successPanel.hidden = true;
+      successMessage.textContent = '';
+    }
+
+    function showSuccessMessage(checkedAt, reservationResult) {
+      const resultMessage = reservationResult && (
+        reservationResult.message ||
+        reservationResult.result?.message ||
+        reservationResult.data?.message
+      );
+
+      successMessage.textContent = resultMessage
+        ? `${checkedAt} 예약이 완료되었습니다. 서버 메시지: ${resultMessage}`
+        : `${checkedAt} 예약이 완료되었습니다. 반복 실행을 중단했습니다.`;
+      successPanel.hidden = false;
+    }
+
+    function appendLog(entry) {
+      if (!isDebugMode()) return;
+
+      logEntries.push(entry);
+      if (logEntries.length > MAX_LOG_ENTRIES) {
+        logEntries = logEntries.slice(-MAX_LOG_ENTRIES);
+      }
+      logOutput.textContent = logEntries.map((item) => JSON.stringify(item, null, 2)).join('\n\n');
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    function isDebugMode() {
+      return debugMode.checked;
+    }
+
+    function updateDebugVisibility() {
+      debugPanel.hidden = !isDebugMode();
+    }
+
+    function formatInterval(seconds) {
+      return `${seconds / 60}분`;
+    }
+
+    function validateSettings(settings) {
+      if (!form.reportValidity()) return false;
+      if (![60, 300, 600].includes(settings.intervalSeconds)) {
+        setState('error', '반복 간격은 1분, 5분, 10분 중 하나여야 합니다.');
+        return false;
+      }
+      const range = getBookingDateRange();
+      if (!isDateInRange(settings.departingDate, range)) {
+        setState('error', `출발 일시는 ${range.min}부터 ${range.max}까지만 선택할 수 있습니다.`);
+        return false;
+      }
+      return true;
+    }
+
+    function buildReservationPayload(settings) {
+      return {
+        name: settings.name,
+        phone: settings.phone,
+        carType: 'BASIC',
+        carNumber: settings.carNumber,
+        carModel: settings.carModel,
+        carColor: settings.carColor,
+        carBrand: settings.carBrand,
+        type: settings.type,
+        arrivedAt: combineDateTime(settings.arrivedDate, settings.arrivedTime),
+        departingAt: combineDateTime(settings.departingDate, settings.departingTime),
+        customerRequest: null,
+        root: 'WEB',
+        isUsingCarWash: false,
+        isCrew: false,
+        carWashType: null,
+        departingAir: settings.departingAir
+      };
+    }
+
+    async function fetchJson(url, options = {}) {
+      const controller = activeController || new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), requestTimeoutMs);
+
+      try {
+        const response = await fetch(url, {
+          cache: 'no-store',
+          signal: controller.signal,
+          ...options
+        });
+        const text = await response.text();
+        let body = null;
+
+        try {
+          body = text ? JSON.parse(text) : null;
+        } catch (error) {
+          body = text;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${typeof body === 'string' ? body : JSON.stringify(body)}`);
+        }
+
+        return body;
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    }
+
+    async function runOnce(source = 'manual') {
+      if (inFlight) return;
+
+      const settings = readSettings();
+      if (!validateSettings(settings)) return;
+      saveSettings();
+      inFlight = true;
+      activeController = new AbortController();
+      runButton.disabled = true;
+      hideSuccessMessage();
+      setState('running', `${source === 'auto' ? '자동' : '수동'} 확인 중...`);
+
+      const checkedAt = new Date().toLocaleString('ko-KR', { hour12: false });
+
+      try {
+        const checkParams = new URLSearchParams({
+          date: settings.date,
+          type: settings.type
+        });
+        const checkRequestUrl = `${checkUrl}?${checkParams}`;
+        appendLog({
+          checkedAt,
+          source,
+          request: {
+            method: 'GET',
+            url: checkRequestUrl
+          }
+        });
+
+        const checkResult = await fetchJson(checkRequestUrl);
+
+        if (checkResult && checkResult.data === true) {
+          const reservationPayload = buildReservationPayload(settings);
+          appendLog({
+            checkedAt,
+            source,
+            request: {
+              method: 'POST',
+              url: reservationUrl,
+              body: reservationPayload
+            }
+          });
+
+          const reservationResult = await fetchJson(reservationUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reservationPayload)
+          });
+
+          appendLog({ checkedAt, source, available: true, checkResult, reservationResult });
+          stopLoop({ silent: true });
+          showSuccessMessage(checkedAt, reservationResult);
+          setState('success', `${checkedAt} 예약 성공으로 반복 실행을 중단했습니다.`);
+        } else {
+          setState('warn', `${checkedAt} 아직 만차입니다.`);
+          appendLog({ checkedAt, source, available: false, checkResult });
+        }
+      } catch (error) {
+        const wasAborted = error && error.name === 'AbortError';
+        setState('error', `${checkedAt} ${wasAborted ? '요청이 취소되었습니다.' : 'API 호출 실패'}`);
+        appendLog({
+          checkedAt,
+          source,
+          error: String(error),
+          note: 'Failed to fetch 또는 CORS 오류라면 브라우저에서 이 API의 직접 호출이 차단된 것입니다.'
+        });
+      } finally {
+        inFlight = false;
+        activeController = null;
+        runButton.disabled = false;
+      }
+    }
+
+    function startLoop() {
+      const settings = readSettings();
+      if (!validateSettings(settings)) return;
+
+      stopLoop();
+      saveSettings();
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      setState('running', `${formatInterval(settings.intervalSeconds)} 간격으로 실행합니다.`);
+      runOnce('session-start');
+      timerId = window.setInterval(() => runOnce('auto'), settings.intervalSeconds * 1000);
+    }
+
+    function stopLoop(options = {}) {
+      if (timerId) window.clearInterval(timerId);
+      timerId = null;
+      if (activeController) {
+        activeController.abort();
+        activeController = null;
+      }
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      if (!options.silent && !inFlight) setState('warn', '반복 실행을 중지했습니다.');
+    }
+
+    applyDateLimits();
+    updateDebugVisibility();
+    loadSettings();
+    form.addEventListener('input', saveSettings);
+    debugMode.addEventListener('change', () => {
+      updateDebugVisibility();
+      saveSettings();
+    });
+    startButton.addEventListener('click', startLoop);
+    stopButton.addEventListener('click', stopLoop);
+    runButton.addEventListener('click', () => runOnce('manual'));
+    clearButton.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      form.reset();
+      updateDebugVisibility();
+      hideSuccessMessage();
+      setState('', '저장된 입력값을 지웠습니다.');
+      logEntries = [];
+      logOutput.textContent = '로그가 여기에 표시됩니다.';
+    });
+    window.addEventListener('beforeunload', stopLoop);
+  </script>
+</body>
+</html>
